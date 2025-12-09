@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一千天纪念 | 给老板的信</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            line-height: 2.0;
+            color: #333;
+            background-color: #fefaf6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* 信封动画容器 */
+        .envelope-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fefaf6 0%, #fff5ee 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .envelope-container.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        .envelope-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: #d4a574;
+            margin-bottom: 3rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 0.5s;
+        }
+        
+        .envelope-subtitle {
+            color: #888;
+            margin-bottom: 4rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 1s;
+        }
+        
+        /* 信封样式 */
+        .envelope {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+            margin-bottom: 3rem;
+        }
+        
+        .envelope:hover {
+            transform: scale(1.05);
+        }
+        
+        .envelope-body {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #d4a574 0%, #c2955e 100%);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(212, 165, 116, 0.3);
+            overflow: hidden;
+        }
+        
+        .envelope-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 100px solid #e6b17a;
+            transform-origin: top;
+            transition: transform 0.8s ease;
+            z-index: 2;
+        }
+        
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+        }
+        
+        .envelope-seal {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #ff7b9c;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(255, 123, 156, 0.3);
+            z-index: 3;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            cursor: pointer;
+        }
+        
+        .envelope-seal:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        .envelope-seal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* 信纸样式 */
+        .letter {
+            position: absolute;
+            width: 280px;
+            height: 180px;
+            background-color: white;
+            border-radius: 4px;
+            top: 10px;
+            left: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.8s ease 0.5s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .envelope.open .letter {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* 移除原来的播放按钮样式 */
+        .play-button {
+            display: none;
+        }
+        
+        /* 主内容容器 - 修复显示问题 */
+        .main-content {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            width: 100%;
+            position: relative;
+            background-color: #fefaf6;
+            min-height: 100vh;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 封面页 */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(254, 250, 246, 0.9) 0%, rgba(255, 245, 238, 0.9) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M50,5 C65,5 80,15 80,30 C80,45 65,55 50,55 C35,55 20,45 20,30 C20,15 35,5 50,5 Z" fill="none" stroke="%23ffd1dc" stroke-width="0.5" opacity="0.6"/></svg>');
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .cover h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 5rem;
+            color: #d4a574;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .cover-subtitle {
+            font-size: 1.3rem;
+            color: #888;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .scroll-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d4a574;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+        }
+        
+        .scroll-hint i {
+            margin-top: 5px;
+        }
+        
+        /* 内容部分 */
+        .content-section {
+            padding: 100px 0;
+            border-bottom: 1px solid rgba(212, 165, 116, 0.1);
+        }
+        
+        .content-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.2rem;
+            color: #d4a574;
+            text-align: center;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 1s, transform 1s;
+        }
+        
+        .text-content {
+            font-size: 1.15rem;
+            line-height: 2.0;
+            color: #555;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .text-content p {
+            margin-bottom: 1.8rem;
+        }
+        
+        .text-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .text-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 1s, transform 1s;
+        }
+        
+        .image-container {
+            margin: 50px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            opacity: 0;
+            transform: translateY(30px);
+            position: relative;
+        }
+        
+        .image-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 1s, transform 1s;
+        }
+        
+        .custom-image {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+            background-color: #f5f0eb;
+        }
+        
+        .custom-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .image-caption {
+            text-align: center;
+            color: #666;
+            margin-top: 15px;
+            font-size: 1rem;
+            font-style: normal;
+        }
+        
+        /* 图片加载状态 */
+        .image-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(254, 250, 246, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f5f0eb;
+            border-top: 3px solid #d4a574;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        
+        .image-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f0eb;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #d4a574;
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+        
+        /* 结尾部分 */
+        .ending {
+            text-align: center;
+            padding: 120px 0;
+            background-color: rgba(255, 245, 238, 0.5);
+        }
+        
+        .ending-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.8rem;
+            color: #d4a574;
+            margin-bottom: 2.5rem;
+            line-height: 1.4;
+        }
+        
+        .signature {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: #333;
+            margin-top: 3rem;
+        }
+        
+        .heart {
+            color: #ff7b9c;
+            font-size: 2.5rem;
+            margin: 25px 0;
+            animation: heartbeat 1.5s infinite;
+        }
+        
+        /* 音乐播放器样式 */
+        #music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #d4a574;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        #music-control.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #music-control:hover {
+            transform: scale(1.1);
+            background-color: #c2955e;
+        }
+        
+        .music-note {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #d4a574;
+            text-align: right;
+            max-width: 150px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .music-note.visible {
+            opacity: 0.8;
+        }
+        
+        /* 动画 */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .envelope {
+                width: 250px;
+                height: 166px;
+            }
+            
+            .envelope-flap {
+                border-left: 125px solid transparent;
+                border-right: 125px solid transparent;
+                border-top: 83px solid #e6b17a;
+            }
+            
+            .letter {
+                width: 230px;
+                height: 146px;
+                padding: 20px;
+            }
+            
+            .envelope-title {
+                font-size: 2.5rem;
+            }
+            
+            .cover h1 {
+                font-size: 3.5rem;
+            }
+            
+            .cover-subtitle {
+                font-size: 1.1rem;
+                margin: 0 auto 2rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+                margin-bottom: 3rem;
+            }
+            
+            .text-content {
+                font-size: 1.05rem;
+                margin-bottom: 2.5rem;
+            }
+            
+            .ending-text {
+                font-size: 2.2rem;
+            }
+            
+            .signature {
+                font-size: 1.8rem;
+            }
+            
+            .custom-image {
+                height: 350px;
+            }
+            
+            .content-section {
+                padding: 80px 0;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 信封动画容器 -->
+    <div id="envelopeContainer" class="envelope-container">
+        <h1 class="envelope-title">1000DAYS</h1>
+        <p class="envelope-subtitle">点击爱心，查看我给老板的小作文</p>
+        
+        <div class="envelope" id="envelope">
+            <div class="envelope-body"></div>
+            <div class="envelope-flap"></div>
+            <div class="envelope-seal" id="heartButton">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="letter">
+                <div class="letter-content">
+                    <!-- 信封内的文字内容已删除 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div id="mainContent" class="main-content">
+        <!-- 封面页 -->
+        <section class="cover">
+            <h1>一千天</h1>
+            <p class="cover-subtitle">不知不觉，和老板在一起已经一千天了，回过头来看这一千天的日子，很长很长。</p>
+            <div class="scroll-hint">
+                <span>向下滚动阅读</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </section>
+
+        <!-- 引言部分 -->
+        <section class="content-section">
+            <div class="container">
+                <div class="text-content">
+                    <p>永远记得那个冬天，我颤抖地握住老板的手，穷尽一切言语将老板抱在怀里。这是我人生中最正确的决定，就此我的世界发生改变——不再是茕茕孑立，而有小手牵着；脑子里不再是那些悲伤的钢琴曲，而是老板可爱的歌声——一切都变得幸福了，一切都有了未来。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 开端部分 -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">开端</h2>
+                <div class="text-content">
+                    <p>故事从这张票开始说起。战战兢兢中，是我第一次单独约女生出来。我和老板在清华吃了淮扬菜，看了音乐会，我也第一次看到了我和老板在夜光下的倒影。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/1.jpg" 
+                         alt="我和老板一起看的第一场音乐会" 
+                         class="custom-image"
+                         data-number="1">
+                    <div class="image-caption">我和老板一起看的第一场音乐会</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>谢谢老板，让我有了说出的勇气；也谢谢老板，面对那些流言蜚语，仍然肯留下来，陪在我的身边。</p>
+                    <p>刚开始的时候，老板还没有和我很熟。我清晰地记得，最开始我只敢挽着老板的胳膊，直到一两周后，在西单出地铁站的扶梯上，我第一次真正地牵住了老板的手。2023年4月1日，我第一次用自己的手机拍下了老板的照片。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/2.jpg" 
+                         alt="我们在杨梅竹斜街搞大创" 
+                         class="custom-image"
+                         data-number="2">
+                    <div class="image-caption">我们在杨梅竹斜街搞大创</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>老板和我越来越熟了，从我印象里的大小姐，逐渐变成了一个小朋友——喜欢小朋友，喜欢老板。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 笑和泪，才是真实的生活 -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">笑和泪，才是真实的生活</h2>
+                <div class="text-content">
+                    <p>学校是不好过的。各种各样的作业、pre，都需要优先去考虑完成。教三成为了我们的大本营，只要是没课，我们都会在教三呆着，边学习边谈恋爱。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/3.jpg" 
+                         alt="老板在教三睡大觉" 
+                         class="custom-image"
+                         data-number="3">
+                    <div class="image-caption">老板在教三睡大觉</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>期末周，立德成了我们的大本营。下了课，我们就往立德冲，占座学习。老板学得很痛苦，但也很努力，我有了老板这个小助手，复习起来也真的做到了事倍功半。其实，是老板真正地教给了我如何去复习。以至于，每当后来再度来到立德楼，楼里那股独特的味道，总会让我想起和老板在一起熬夜复习的时光。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/4.jpg" 
+                         alt="我和老板在立德学习" 
+                         class="custom-image"
+                         data-number="4">
+                    <div class="image-caption">我和老板在立德学习</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>大三上学期一开学，我就一直生病。对于我来说，生病带来的更多是精神上的不舒服，是老板一直陪着我，逗我开心。老板也是唯一一个，在我生病的时候不会骂我的人。生病的日子是最难熬的，若是一个人孤身外地，只能更难过。但自从有了老板之后，老板担心我照顾我，给我唱歌，尽管在学校老板不能一直照顾我，但在宿舍床上听着老板唱的歌，也特别特别的幸福，好像老板就在我的身边。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/5.jpg" 
+                         alt="老板逗生病的我开心" 
+                         class="custom-image"
+                         data-number="5">
+                    <div class="image-caption">老板逗生病的我开心</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>后来我们开发了新据点——立德成长空间。这更是一个快乐和痛苦并存的地方，在这个地方，我们渡过了本科最艰难的时光，我要保研，老板要找工作。但是，轻舟已过万重山，这里更重要的，是我和老板点外卖看剧，老板要抱抱的地方。</p>
+                    <p>这一千天来，我和老板也走过了全国好多地方。从最开始天津一日往返，到后来带老板偷跑去武汉，也第一次带老板看了海，去了西安、秦皇岛、青岛、济南、珠海、香港、澳门、日本、上海、南京、重庆……看着开心的老板，做什么都是值得的。</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/6.jpg" 
+                         alt="带老板第一次看海" 
+                         class="custom-image"
+                         data-number="6">
+                    <div class="image-caption">带老板第一次看海</div>
+                </div>
+                
+                <div class="text-content">
+                    <p>谢谢老板陪我干了很多我想干的事。我们一起看了很多电影、很多剧，陪我去想去铁道博物馆，陪我去公园，去吃好吃的……重点是，老板一直在我身边陪着我，让我不再孤单。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 北京啊北京 -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">北京啊北京</h2>
+                <div class="text-content">
+                    <p>作为外地人，没有人能够像我一样对北京怀有这么大的情感。</p>
+                    <p>21年刚开始来北京上学，着实很难适应。除了宿舍各方面条件都很一般，北京的物价也特别高。最开始我的生活费只有2000，但是根本不够用。有了老板之后，我爸就把生活费给我涨到了3000。对我来说，老板的陪伴是我能够在坚持在北京生活下来的最大支柱，是老板的小手、抱抱和对我的关心支撑着我继续向我的目标前进——我不能没有老板。</p>
+                    <p>北京是我第二个家。我特别感激能够受到老板一家的照顾，无论是老板还是姥姥姥爷还是阿姨，都对我特别好，让我觉得在北京也有家。</p>
+                    <p>北京啊北京，虽然节奏快、通勤累、压力大，但有老板的地方就是我的家。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结尾 -->
+        <section class="ending">
+            <div class="container">
+                <div class="image-container">
+                    <img src="https://raw.githubusercontent.com/successful6661/1000days/main/7.jpg" 
+                         alt="一千天纪念" 
+                         class="custom-image"
+                         data-number="7">
+                </div>
+                
+                <div class="ending-text">老板老板，一千天快乐。</div>
+                <div class="ending-text">再等等我，我一定一定能永远留在老板身边。</div>
+                
+                <div class="heart">❤️</div>
+                
+                <div class="signature">永远爱你的老板</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 音乐控制 -->
+    <div id="music-control">
+        <i class="fas fa-pause"></i>
+    </div>
+    <div class="music-note">音乐播放中</div>
+
+    <!-- 音频元素 -->
+    <audio id="bgMusic" loop preload="auto">
+        <!-- 使用您提供的GitHub仓库音乐链接 -->
+        <source src="https://raw.githubusercontent.com/successful6661/1000days/main/music.mp3" type="audio/mpeg">
+        <!-- 备用音乐源，以防主链接失效 -->
+        <source src="https://assets.mixkit.co/music/preview/mixkit-piano-romance-233.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+
+    <script>
+        // 等待页面完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            const envelopeContainer = document.getElementById('envelopeContainer');
+            const envelope = document.getElementById('envelope');
+            const heartButton = document.getElementById('heartButton');
+            const mainContent = document.getElementById('mainContent');
+            const audio = document.getElementById('bgMusic');
+            const musicControl = document.getElementById('music-control');
+            const musicNote = document.querySelector('.music-note');
+            const coverTitle = document.querySelector('.cover h1');
+            const coverSubtitle = document.querySelector('.cover-subtitle');
+            const scrollHint = document.querySelector('.scroll-hint');
+            
+            let musicPlaying = false;
+            let hasStarted = false;
+            
+            // 设置音频音量
+            audio.volume = 0.4;
+            
+            // 点击爱心按钮触发所有动画和播放
+            heartButton.addEventListener('click', function() {
+                if (hasStarted) return; // 防止重复点击
+                hasStarted = true;
+                
+                // 打开信封
+                envelope.classList.add('open');
+                
+                // 隐藏爱心按钮
+                heartButton.classList.add('hidden');
+                
+                // 播放音乐
+                audio.play().then(() => {
+                    musicPlaying = true;
+                    musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+                    musicControl.classList.add('visible');
+                    musicNote.classList.add('visible');
+                    musicNote.textContent = '音乐播放中';
+                    
+                    // 等待信封打开动画完成，然后显示主内容
+                    setTimeout(() => {
+                        // 隐藏信封容器
+                        envelopeContainer.classList.add('hidden');
+                        
+                        // 显示主内容
+                        mainContent.classList.add('visible');
+                        
+                        // 启用页面滚动
+                        document.body.style.overflow = 'auto';
+                        
+                        // 触发封面动画
+                        setTimeout(() => {
+                            coverTitle.style.animation = 'fadeInUp 1s forwards 0.5s';
+                            coverSubtitle.style.animation = 'fadeInUp 1s forwards 1s';
+                            scrollHint.style.animation = 'fadeIn 1s forwards 2s';
+                            scrollHint.querySelector('i').style.animation = 'bounce 2s infinite';
+                        }, 500);
+                        
+                        // 初始化滚动动画
+                        initScrollAnimations();
+                        
+                        // 初始化图片加载
+                        initImageLoading();
+                    }, 1200); // 等待信封完全打开和信纸展开
+                }).catch(e => {
+                    console.log('播放失败:', e);
+                    
+                    // 即使音乐播放失败，也继续显示内容
+                    setTimeout(() => {
+                        envelopeContainer.classList.add('hidden');
+                        mainContent.classList.add('visible');
+                        document.body.style.overflow = 'auto';
+                        
+                        setTimeout(() => {
+                            coverTitle.style.animation = 'fadeInUp 1s forwards 0.5s';
+                            coverSubtitle.style.animation = 'fadeInUp 1s forwards 1s';
+                            scrollHint.style.animation = 'fadeIn 1s forwards 2s';
+                            scrollHint.querySelector('i').style.animation = 'bounce 2s infinite';
+                        }, 500);
+                        
+                        initScrollAnimations();
+                        initImageLoading();
+                    }, 1200);
+                    
+                    // 显示播放失败的提示
+                    musicControl.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    musicNote.textContent = '音乐加载失败';
+                    musicControl.classList.add('visible');
+                    musicNote.classList.add('visible');
+                });
+            });
+            
+            // 点击整个信封也可以触发（可选，保持原有功能）
+            envelope.addEventListener('click', function(e) {
+                // 防止重复触发
+                if (hasStarted) return;
+                
+                // 如果不是点击爱心按钮，则触发爱心按钮的点击事件
+                if (e.target.closest('.envelope-seal')) return;
+                
+                heartButton.click();
+            });
+            
+            // 点击音乐控制按钮
+            musicControl.addEventListener('click', function() {
+                if (musicPlaying) {
+                    audio.pause();
+                    musicControl.innerHTML = '<i class="fas fa-play"></i>';
+                    musicNote.textContent = '点击播放音乐';
+                } else {
+                    audio.play().then(() => {
+                        musicPlaying = true;
+                        musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+                        musicNote.textContent = '音乐播放中';
+                    }).catch(e => {
+                        console.log('播放失败:', e);
+                        musicControl.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    });
+                }
+                musicPlaying = !musicPlaying;
+            });
+            
+            // 初始化滚动动画
+            function initScrollAnimations() {
+                const sections = document.querySelectorAll('.section-title, .text-content, .image-container');
+                
+                // 滚动时触发元素显示
+                function checkVisibility() {
+                    sections.forEach(section => {
+                        const rect = section.getBoundingClientRect();
+                        const windowHeight = window.innerHeight;
+                        
+                        if (rect.top <= windowHeight * 0.85) {
+                            section.classList.add('visible');
+                        }
+                    });
+                }
+                
+                // 初始检查
+                checkVisibility();
+                
+                // 滚动时检查
+                window.addEventListener('scroll', checkVisibility);
+            }
+            
+            // 初始化图片加载
+            function initImageLoading() {
+                const images = document.querySelectorAll('.custom-image');
+                
+                images.forEach(img => {
+                    const container = img.parentElement;
+                    
+                    // 创建加载状态元素
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'image-loading';
+                    loadingDiv.innerHTML = '<div class="loading-spinner"></div><p>加载回忆中...</p>';
+                    container.appendChild(loadingDiv);
+                    
+                    // 检查图片是否已经加载完成
+                    if (img.complete) {
+                        loadingDiv.style.opacity = '0';
+                        setTimeout(() => loadingDiv.remove(), 300);
+                    } else {
+                        // 图片加载成功
+                        img.addEventListener('load', () => {
+                            loadingDiv.style.opacity = '0';
+                            setTimeout(() => loadingDiv.remove(), 300);
+                        });
+                        
+                        // 图片加载失败
+                        img.addEventListener('error', () => {
+                            loadingDiv.remove();
+                            
+                            // 创建错误状态元素
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'image-error';
+                            errorDiv.innerHTML = `
+                                <i class="fas fa-heart" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>记忆永存心中</p>
+                                <p style="font-size: 0.9rem; margin-top: 5px;">图${img.dataset.number}</p>
+                            `;
+                            container.appendChild(errorDiv);
+                        });
+                    }
+                });
+            }
+            
+            // 监听音频结束，重新开始播放（确保循环）
+            audio.addEventListener('ended', function() {
+                audio.currentTime = 0;
+                audio.play();
+            });
+        });
+    </script>
+</body>
+</html>
